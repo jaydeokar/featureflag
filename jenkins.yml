@@ -1,0 +1,204 @@
+---
+- hosts: all
+  vars_files: variables.yml
+  # roles:
+  #   - jenkins
+  #   - create_jobs
+  #   - deploy
+  tasks:
+  # - name: install jre8
+  #   apt:
+  #    name: openjdk-8-jre
+  #    state: present
+  #    update_cache: yes
+  #   become: true  
+ 
+  # - name: install git
+  #   apt:
+  #    name: git
+  #    state: present
+  #   become: true
+
+  # - name: Set timezone to EST
+  #   lineinfile: 
+  #     dest: /etc/timezone 
+  #     regexp: ".*" 
+  #     line: "EST"
+  #   become: yes
+
+
+  # - name: Install the headless chrome package
+  #   apt:
+  #     deb: https://dl.google.com/linux/direct/google-chrome-unstable_current_amd64.deb
+  #   become: true
+
+  # - name: password given
+  #   debug:
+  #     msg: "{{ mysql_password }}"
+
+  # - name: Mysql | Set root password
+  #   become: yes
+  #   shell: debconf-set-selections <<< 'mysql-server mysql-server/root_password password {{ mysql_password }}'
+  #   args:
+  #     executable: /bin/bash
+
+  # - name: Mysql | Set root password again
+  #   become: yes
+  #   shell: debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password {{ mysql_password }}' 
+  #   args:
+  #     executable: /bin/bash
+
+
+  # - name: install mysql server
+  #   apt:
+  #       name: "{{ packages }}"
+  #       state: present
+  #       update_cache: yes
+  #   vars:
+  #       packages:
+  #           - mysql-server-5.7
+  #           - python-mysqldb
+  #           - python3-pymysql
+  #           - redis-server
+  #   sudo: true
+
+
+  # - name: Ensure Redis is started
+  #   service: 
+  #     name: redis-server 
+  #     state: started 
+  #     enabled: yes
+  #   sudo: true
+
+  - name: Copy database dump file
+    copy:
+      src: /vagrant/keys.txt
+      dest: /tmp
+  
+  - name: Load the keys into redis
+    shell: cat /tmp/keys.txt | redis-cli --pipe
+
+  # - name: update mysql root password for all root accounts
+  #   sudo: yes
+  #   mysql_user: 
+  #     name: "{{ mysql_user }}"
+  #     host: all 
+  #     password: ""
+  #     login_user: "{{ mysql_user }}"
+  #     login_password: "{{ mysql_password }}"
+  #     check_implicit_admin: yes
+  #     priv: "*.*:ALL,GRANT"
+    
+  # - name:  print current directory
+  #   debug: 
+  #       msg: "{{ ansible_facts.env['PWD'] }}"
+         
+  # - name: Ansible template creation
+  #   template:
+  #       src: /vagrant/root.cnf.j2
+  #        #src: "{{ ansible_facts.env['PWD'] }}/root1.cnf.j2"
+  #       dest: /root/.my.cnf
+  #   sudo: true
+
+  # - name: remove mysql password
+  #   command: mysqladmin --user=root password ""
+  #   sudo: true
+       
+  # - name: command restart
+  #   command: sudo service mysql restart
+  #   sudo: true
+    
+  # - name: Download the package from Tomcat website
+  #   get_url: 
+  #     url:  "{{ url }}"
+  #     dest: /tmp/
+    
+  # - name: create 'tomcat' group
+  #   become: true
+  #   group:
+  #       name: "{{ tomcat_grp }}"
+  #       state: present
+
+  # - name: Create 'tomcat' user
+  #   become: true
+  #   user: 
+  #       name: "{{tomcat_usr}}"
+  #       group: "{{ tomcat_grp }}"
+  #       system: yes
+
+  # - name: Change tomcat directory permissions for the tomcat group and tomcat user
+  #   file:
+  #       path: /opt/tomcat
+  #       state: directory
+  #       owner: "{{tomcat_usr}}"
+  #       group: "{{tomcat_grp}}"
+  #       recurse: yes
+  #   become: true
+
+  # - name: unpack archive to folder
+  #   become: yes
+  #   unarchive: 
+  #       src: /tmp/apache-tomcat-8.5.39.tar.gz
+  #       dest: /opt/
+  #       copy: no
+  
+  # - name: copy the folder
+  #   sudo: yes
+  #   # sudo_user: "{{tomcat_usr}}"
+  #   synchronize: 
+  #     src: /opt/apache-tomcat-8.5.39/
+  #     dest: /opt/tomcat/
+  #   delegate_to: "{{ inventory_hostname }}"
+
+  # - name: change permissions
+  #   sudo: true
+  #   file:
+  #     path: /opt/tomcat
+  #     owner: "{{tomcat_usr}}"
+  #     group: "{{tomcat_grp}}"
+  #     recurse: yes
+
+  # - name: change permissions
+  #   sudo: true
+  #   file:
+  #     path: /opt/tomcat/conf
+  #     owner: "{{tomcat_usr}}"
+  #     group: "{{tomcat_grp}}"
+  #     recurse: yes
+  #     mode: 0644
+
+  # - name: copy the service file 
+  #   sudo: true
+  #   copy:
+  #       src: /vagrant/tomcat.service
+  #       dest: /etc/systemd/system/
+  #       mode: 0777
+    
+  - name: copy the war file
+    sudo: true
+    copy:
+        src: /home/vagrant/iTrust2/iTrust2/target/iTrust2.war
+        dest: /opt/tomcat/webapps/
+
+  # - name: check if DB exists
+  #   shell: mysql -u root -e 'SHOW DATABASES;'
+  #   register: dbstatus
+
+  # - name: Copy database dump file
+  #   copy:
+  #     src: /vagrant/all_databases.sql
+  #     dest: /tmp
+  #   when: "'iTrust2' not in dbstatus.stdout"
+
+  # - name: Import mysql dump
+  #   mysql_db:
+  #     state: import
+  #     name: all
+  #     target: /tmp/all_databases.sql
+  #   when: "'iTrust2' not in dbstatus.stdout"
+
+  - name: Make sure a service is running
+    sudo: true
+    systemd:
+        state: started
+        name: tomcat
