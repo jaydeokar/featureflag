@@ -1,2 +1,2 @@
-set admin/drugs "True"
-set admin/flag "False" 
+ set admin/drugs "True"
+ set admin/flag "False" 
