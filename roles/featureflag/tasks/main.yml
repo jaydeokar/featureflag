@@ -75,7 +75,6 @@
   - name: Load the keys into redis
     shell: cat /tmp/keys.txt | redis-cli --pipe
 
-
   - name: update mysql root password for all root accounts
     become: yes
     mysql_user: 
@@ -98,18 +97,22 @@
         dest: /root/.my.cnf
     become: yes
 
+
   - name: remove mysql password
     command: mysqladmin --user=root password ""
     become: yes
+
        
   - name: command restart
     command: service mysql restart
     become: yes
+
     
   - name: Download the package from Tomcat website
     get_url: 
       url:  "{{ url }}"
       dest: /tmp/
+
     
   - name: create 'tomcat' group
     become: yes
@@ -144,26 +147,54 @@
     become: yes
     # sudo_user: "{{tomcat_usr}}"
     synchronize: 
-      src: /opt/apache-tomcat-8.5.39-src/
+      src: /opt/apache-tomcat-9.0.19/
       dest: /opt/tomcat/
     delegate_to: "{{ inventory_hostname }}"
 
-  - name: change permissions
+  - name: change grp user for whole folder
     become: yes
     file:
       path: /opt/tomcat
-      owner: "{{tomcat_usr}}"
       group: "{{tomcat_grp}}"
       recurse: yes
 
-  - name: change permissions
+  - name: change conf permissions
     become: yes
     file:
       path: /opt/tomcat/conf
-      owner: "{{tomcat_usr}}"
-      group: "{{tomcat_grp}}"
       recurse: yes
-      mode: 0644
+      mode: "g+r"
+
+  - name: change permissions for conf folder
+    become: yes
+    file:
+      path: /opt/tomcat/conf
+      mode: "g+x"
+
+  - name: change permissions webapps folder
+    become: yes
+    file:
+      path: /opt/tomcat/webapps
+      owner: "{{tomcat_usr}}"
+
+  - name: change permissions work folder
+    become: yes
+    file:
+      path: /opt/tomcat/work
+      owner: "{{tomcat_usr}}"
+
+  - name: change permissions temp folder
+    become: yes
+    file:
+      path: /opt/tomcat/temp
+      owner: "{{tomcat_usr}}"
+
+  - name: change permissions logs
+    become: yes
+    file:
+      path: /opt/tomcat/logs
+      owner: "{{tomcat_usr}}"
+
 
   - name: copy the service file 
     become: yes
@@ -175,10 +206,11 @@
   - name: copy the war file
     become: yes
     copy:
-        src: /home/vagrant/iTrust2/iTrust2/target/iTrust2.war
+        src: /home/ubuntu/featureflag/iTrust2.war
         dest: /opt/tomcat/webapps/
 
   - name: check if DB exists
+    become: yes
     shell: mysql -u {{mysql_user}} -e 'SHOW DATABASES;'
     register: dbstatus
 
@@ -189,6 +221,7 @@
     when: "'iTrust2' not in dbstatus.stdout"
 
   - name: Import mysql dump
+    become: yes
     mysql_db:
       state: import
       name: all
@@ -199,4 +232,5 @@
     become: yes
     systemd:
         state: started
+        daemon_reload: yes
         name: tomcat
