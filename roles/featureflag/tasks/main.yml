@@ -147,7 +147,7 @@
     become: yes
     # sudo_user: "{{tomcat_usr}}"
     synchronize: 
-      src: /opt/apache-tomcat-9.0.19/
+      src: /opt/{{unpackfolder}}/
       dest: /opt/tomcat/
     delegate_to: "{{ inventory_hostname }}"
 
