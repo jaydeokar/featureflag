@@ -206,7 +206,7 @@
   - name: copy the war file
     become: yes
     copy:
-        src: /home/ubuntu/featureflag/iTrust2.war
+        src: /var/lib/jenkins/iTrust\ Build/iTrust2/target/iTrust2.war
         dest: /opt/tomcat/webapps/
 
   - name: check if DB exists
