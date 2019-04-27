@@ -109,6 +109,7 @@
 
     
   - name: Download the package from Tomcat website
+    become: yes
     get_url: 
       url:  "{{ url }}"
       dest: /tmp/
@@ -206,11 +207,12 @@
   - name: copy the war file
     become: yes
     copy:
-        src: /var/lib/jenkins/iTrust\ Build/iTrust2/target/iTrust2.war
+        src: /home/ubuntu/featureflag/iTrust2.war
+        #src: /var/lib/jenkins/iTrust\ Build/iTrust2/target/iTrust2.war
         dest: /opt/tomcat/webapps/
 
   - name: check if DB exists
-    become: yes
+   # become: yes
     shell: mysql -u {{mysql_user}} -e 'SHOW DATABASES;'
     register: dbstatus
 
@@ -221,8 +223,9 @@
     when: "'iTrust2' not in dbstatus.stdout"
 
   - name: Import mysql dump
-    become: yes
+ #   become: yes
     mysql_db:
+      login_user: root
       state: import
       name: all
       target: /tmp/all_databases.sql

@@ -1,6 +1,6 @@
 ---
 mysql_user: "root"
-mysql_password: ""
+mysql_password: "root"
 tomcat_grp: "tomcat"
 tomcat_usr: "tomcat"
 tomcat-version: "8.5.39"
