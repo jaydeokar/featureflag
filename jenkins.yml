@@ -5,6 +5,7 @@
   vars:
         ansible_ssh_private_key_file: /home/ubuntu/devops2.pem
         ansible_python_interpreter: /usr/bin/python3
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
   connection: ssh
 #  become_user: ubuntu
 #  become: true
